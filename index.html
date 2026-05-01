@@ -11,6 +11,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 body{background:linear-gradient(135deg,#eaf6ff,#ffffff);padding:15px;}
+
 .header{
 background:rgba(255,255,255,0.85);
 backdrop-filter:blur(12px);
@@ -23,11 +24,13 @@ color:#1565c0;
 box-shadow:0 5px 15px rgba(0,0,0,0.05);
 margin-bottom:20px;
 }
+
 .dashboard{
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:15px;
 }
+
 .card{
 background:white;
 padding:20px;
@@ -37,101 +40,141 @@ cursor:pointer;
 transition:0.3s;
 box-shadow:0 5px 15px rgba(0,0,0,0.05);
 }
-.card:hover{transform:translateY(-5px);}
 .card i{font-size:22px;color:#1565c0;margin-bottom:8px;}
+
 .page{display:none;margin-top:20px;}
+
 input,select{
 width:100%;padding:10px;margin-bottom:10px;
 border-radius:10px;border:1px solid #bbdefb;font-size:13px;
 }
+
 button{
 padding:7px 12px;border:none;border-radius:8px;
 background:#1565c0;color:white;font-size:12px;cursor:pointer;margin:2px;
 }
+
 .smallBtn{padding:5px 7px;font-size:12px;}
 .backBtn{background:#777;margin-bottom:15px;}
+
 .folder{
 background:white;padding:12px;border-radius:12px;
 margin-bottom:10px;box-shadow:0 3px 10px rgba(0,0,0,0.05);
 display:flex;justify-content:space-between;align-items:center;
 cursor:pointer;
 }
+
 .tableWrapper{
 background:white;border-radius:12px;
 box-shadow:0 5px 18px rgba(0,0,0,0.08);
-overflow:auto;margin-top:10px;
+margin-top:10px;
+overflow:auto;
 }
+
 table{
-width:100%;border-collapse:collapse;font-size:13px;min-width:600px;
+width:100%;
+border-collapse:collapse;
+font-size:12px;
 }
+
 th{
-background:#1976d2;color:white;padding:10px;border:1px solid #cfe3ff;
+background:#1976d2;color:white;padding:8px;
+border:1px solid #cfe3ff;
 }
+
 td{
-padding:8px;border:1px solid #e2e2e2;text-align:center;
+padding:6px;border:1px solid #e2e2e2;text-align:center;
+word-break:break-word;
 }
-tr:hover{background:#f4f9ff;}
+
+.publishRow{background:#e8f5e9;}
+.unpublishRow{background:#ffebee;}
 .paidRow{background:#eafaf1;}
 .unpaidRow{background:#fdeaea;}
+
 .paidBtn{background:#2ecc71;}
 .unpaidBtn{background:#e74c3c;}
 .copyBtn{background:#3498db;}
 .deleteBtn{background:#555;}
-.publishRow{background:#e8f5e9;}
-.unpublishRow{background:#ffebee;}
 </style>
 </head>
+
 <body>
 
 <div class="header">
 <i class="fa-solid fa-layer-group"></i> Review Nest Industrial Dashboard
 </div>
 
+<!-- DASHBOARD -->
 <div class="dashboard">
 <div class="card" onclick="openPage('trackerPage')"><i class="fa-solid fa-plus"></i><p>App Tracker</p></div>
 <div class="card" onclick="openPage('clientPage')"><i class="fa-solid fa-users"></i><p>Client File</p></div>
 <div class="card" onclick="openPage('universalPage')"><i class="fa-solid fa-table"></i><p>Universal File</p></div>
-<div class="card" onclick="openPage('clientTrackerPage')"><i class="fa-solid fa-folder-open"></i><p>Client App Tracker</p></div>
+<div class="card" onclick="openPage('clientTrackerPage')"><i class="fa-solid fa-folder-open"></i><p>Client Tracker</p></div>
+
+<!-- NEW -->
+<div class="card" onclick="openPage('earningPage')">
+<i class="fa-solid fa-sack-dollar"></i>
+<p>Monthly Earnings</p>
+</div>
 </div>
 
-<!-- Add App -->
+<!-- ADD APP -->
 <div class="page" id="trackerPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Add App</h2>
+
 <input type="text" id="appName" placeholder="App Name">
 <select id="clientSelect"></select>
 <input type="date" id="appDate">
 <input type="number" id="appPrice" placeholder="Price">
+<input type="text" id="appHint" placeholder="Hint">
+
 <button onclick="addApp()">Add</button>
 </div>
 
-<!-- Client File -->
+<!-- CLIENT -->
 <div class="page" id="clientPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Client File</h2>
+
 <input type="text" id="clientName" placeholder="Client Name">
 <button onclick="addClient()">Add Client</button>
+
 <div id="clientList"></div>
 </div>
 
-<!-- Universal -->
+<!-- UNIVERSAL -->
 <div class="page" id="universalPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Universal Excel Sheet</h2>
+
 <div class="tableWrapper">
 <table id="universalTable"></table>
 </div>
 </div>
 
-<!-- Client Tracker -->
+<!-- CLIENT TRACKER -->
 <div class="page" id="clientTrackerPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Client Excel Sheet</h2>
+
 <div id="clientFolders"></div>
 <div id="clientApps"></div>
 </div>
 
+<!-- EARNING DASHBOARD -->
+<div class="page" id="earningPage">
+<button class="backBtn" onclick="goHome()">Back</button>
+<h2>Monthly Earnings Dashboard</h2>
+
+<div class="tableWrapper">
+<table id="earningTable"></table>
+</div>
+</div>
+
 <script>
+
 let clients=JSON.parse(localStorage.getItem("clients"))||[];
 let apps=JSON.parse(localStorage.getItem("apps"))||[];
 
@@ -141,8 +184,7 @@ localStorage.setItem("apps",JSON.stringify(apps));
 }
 
 function formatDate(d){
-let date=new Date(d);
-return date.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
 }
 
 function openPage(id){
@@ -157,50 +199,73 @@ document.querySelector(".dashboard").style.display="grid";
 document.querySelectorAll(".page").forEach(p=>p.style.display="none");
 }
 
+/* CLIENT */
 function addClient(){
 let name=document.getElementById("clientName").value.trim();
 if(!name) return;
-if(clients.includes(name)){alert("Client already exists");return;}
+if(clients.includes(name)) return alert("Client exists");
 clients.push(name);
-save();
-render();
-document.getElementById("clientName").value="";
+save();render();
 }
 
+function deleteClient(i){
+if(confirm("Delete client and all apps?")){
+let name=clients[i];
+apps=apps.filter(a=>a.client!==name);
+clients.splice(i,1);
+save();render();
+}
+}
+
+/* APP */
 function addApp(){
 let app=document.getElementById("appName").value.trim();
 let client=document.getElementById("clientSelect").value;
 let date=document.getElementById("appDate").value;
 let price=document.getElementById("appPrice").value;
-if(!app||!client||!date)return;
-apps.push({app,client,date,price,publish:false,paid:false});
+let hint=document.getElementById("appHint").value;
+
+if(!app||!client||!date) return;
+
+let d=new Date(date);
+
+apps.push({
+app,client,date,
+price:price||0,
+hint,
+month:d.getMonth()+1,
+year:d.getFullYear(),
+publish:false,
+paid:false
+});
+
 save();render();
 }
 
+/* TOGGLES */
 function togglePublish(i){
 apps[i].publish=!apps[i].publish;
 save();render();
 }
 
-function togglePaid(i,client){
+function togglePaid(i){
 apps[i].paid=!apps[i].paid;
-save();
-openClientApps(client);
+save();render();
 }
 
-function deleteApp(i,client){
-if(confirm("Delete this app?")){
-apps.splice(i,1);
-save();
-openClientApps(client);
-}
+/* COPY FIX */
+function copyText(a){
+let text=
+`App Name: ${a.app}
+Date: ${formatDate(a.date)}
+Price: ₹${a.price||0}
+Hint: ${a.hint||"-"}`;
+
+navigator.clipboard.writeText(text);
+alert("Copied!");
 }
 
-function copyText(t){
-navigator.clipboard.writeText(t);
-alert("Copied: "+t);
-}
-
+/* UNIVERSAL */
 function render(){
 
 let select=document.getElementById("clientSelect");
@@ -209,6 +274,31 @@ select.innerHTML="";
 clients.forEach(c=>select.innerHTML+=`<option>${c}</option>`);
 }
 
+let ut=document.getElementById("universalTable");
+if(ut){
+ut.innerHTML="";
+
+let groups={};
+
+apps.forEach(a=>{
+let key=`${a.month}-${a.year}`;
+if(!groups[key]) groups[key]=[];
+groups[key].push(a);
+});
+
+Object.keys(groups).sort().reverse().forEach(key=>{
+ut.innerHTML+=`
+<tr>
+<th colspan="6" style="background:#0d47a1;color:white;cursor:pointer"
+onclick="toggleGroup('${key}','uni')">
+📁 Month: ${key}
+</th>
+</tr>
+<tbody id="uni_${key}" style="display:none"></tbody>`;
+});
+}
+
+/* CLIENT LIST */
 let cl=document.getElementById("clientList");
 if(cl){
 cl.innerHTML="";
@@ -216,113 +306,162 @@ clients.forEach((c,i)=>{
 cl.innerHTML+=`
 <div class="folder">
 <span>${c}</span>
-<button class="smallBtn deleteBtn"
-onclick="if(confirm('Delete client and all apps?')){
-apps=apps.filter(a=>a.client!=='${c}');
-clients.splice(${i},1);
-save();render();}">
-<i class="fa-solid fa-trash"></i>
+<button class="deleteBtn smallBtn" onclick="deleteClient(${i})">
+<i class="fa fa-trash"></i>
 </button>
 </div>`;
 });
 }
 
-let ut=document.getElementById("universalTable");
-if(ut){
-ut.innerHTML=`
-<tr>
-<th>App</th><th>Date</th><th>Client</th>
-<th>Price</th><th>Publish</th><th>Action</th>
-</tr>`;
-let sorted=[...apps].sort((a,b)=>new Date(b.date)-new Date(a.date));
-sorted.forEach(a=>{
-let i=apps.indexOf(a);
-ut.innerHTML+=`
-<tr class="${a.publish?'publishRow':'unpublishRow'}">
-<td>${a.app}</td>
-<td>${formatDate(a.date)}</td>
-<td>${a.client}</td>
-<td>₹ ${a.price}</td>
-<td>
-<button class="smallBtn" onclick="togglePublish(${i})">
-<i class="fa-solid ${a.publish?'fa-check':'fa-xmark'}"></i>
-</button>
-</td>
-<td>
-<button class="smallBtn copyBtn" onclick="copyText('${a.app}')">
-<i class="fa-solid fa-copy"></i>
-</button>
-<button class="smallBtn deleteBtn" onclick="deleteApp(${i},'${a.client}')">
-<i class="fa-solid fa-trash"></i>
-</button>
-</td>
-</tr>`;
-});
-}
-
+/* FOLDERS */
 let folders=document.getElementById("clientFolders");
 if(folders){
 folders.innerHTML="";
 clients.forEach(c=>{
 folders.innerHTML+=`
-<div class="folder" onclick="openClientApps('${c}')">
-<i class="fa fa-folder-open"></i> ${c}
-</div>`;
+<div class="folder" onclick="openClient('${c}')">${c}</div>`;
 });
 }
+
+/* EARNINGS */
+renderEarnings();
 }
 
-function openClientApps(client){
-let area=document.getElementById("clientApps");
-let filtered=apps
-.map((a,i)=>({...a,index:i}))
-.filter(a=>a.client===client)
-.sort((a,b)=>new Date(b.date)-new Date(a.date));
+/* UNIVERSAL OPEN */
+function toggleGroup(key,type){
+let el=document.getElementById(type+"_"+key);
+if(el.style.display==="none"){
+el.style.display="table-row-group";
+
+let data=apps.filter(a=>`${a.month}-${a.year}`===key);
 
 let html=`
-<h3>${client} - Excel Sheet</h3>
-<div class="tableWrapper">
-<table>
 <tr>
-<th>Sr</th><th>App Name</th><th>Date</th>
-<th>Price</th><th>Paid</th><th>Action</th>
+<th>App</th><th>Date</th><th>Client</th>
+<th>Hint</th><th>Publish</th><th>Action</th>
 </tr>`;
 
-if(filtered.length===0){
-html+=`<tr><td colspan="6">No Apps Found</td></tr>`;
+data.forEach(a=>{
+html+=`
+<tr class="${a.publish?'publishRow':'unpublishRow'}">
+<td>${a.app}</td>
+<td>${formatDate(a.date)}</td>
+<td>${a.client}</td>
+<td>${a.hint||"-"}</td>
+<td>
+<button onclick="togglePublish(${apps.indexOf(a)})">
+<i class="fa-solid ${a.publish?'fa-check':'fa-xmark'}"></i>
+</button>
+</td>
+<td>
+<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'>
+<i class="fa fa-copy"></i>
+</button>
+</td>
+</tr>`;
+});
+
+el.innerHTML=html;
 }else{
-filtered.forEach((a,i)=>{
+el.style.display="none";
+}
+}
+
+/* CLIENT VIEW */
+function openClient(client){
+let area=document.getElementById("clientApps");
+
+let filtered=apps.filter(a=>a.client===client);
+
+let groups={};
+filtered.forEach(a=>{
+let key=`${a.month}-${a.year}`;
+if(!groups[key]) groups[key]=[];
+groups[key].push(a);
+});
+
+let html=`<h3>${client}</h3><div class="tableWrapper"><table>`;
+
+Object.keys(groups).sort().reverse().forEach(key=>{
+html+=`
+<tr>
+<th colspan="7" style="background:#1b5e20;color:white">
+📄 Month: ${key}
+</th>
+</tr>
+
+<tr>
+<th>Sr</th><th>App</th><th>Date</th>
+<th>Price</th><th>Hint</th><th>Paid</th><th>Action</th>
+</tr>`;
+
+groups[key].forEach((a,i)=>{
 html+=`
 <tr class="${a.paid?'paidRow':'unpaidRow'}">
 <td>${i+1}</td>
 <td>${a.app}</td>
 <td>${formatDate(a.date)}</td>
-<td>₹ ${a.price}</td>
+<td>₹${a.price||0}</td>
+<td>${a.hint||"-"}</td>
 <td>
-<button class="smallBtn ${a.paid?'paidBtn':'unpaidBtn'}"
-onclick="togglePaid(${a.index},'${client}')">
+<button class="${a.paid?'paidBtn':'unpaidBtn'}"
+onclick="togglePaid(${apps.indexOf(a)});openClient('${client}')">
 <i class="fa-solid ${a.paid?'fa-circle-check':'fa-circle-xmark'}"></i>
 </button>
 </td>
 <td>
-<button class="smallBtn copyBtn"
-onclick="copyText('${a.app}')">
-<i class="fa-solid fa-copy"></i>
-</button>
-<button class="smallBtn deleteBtn"
-onclick="deleteApp(${a.index},'${client}')">
-<i class="fa-solid fa-trash"></i>
+<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'>
+<i class="fa fa-copy"></i>
 </button>
 </td>
 </tr>`;
 });
-}
+});
 
-html+=`</table></div>`;
+html+="</table></div>";
 area.innerHTML=html;
 }
 
+/* EARNINGS DASHBOARD */
+function renderEarnings(){
+
+let table=document.getElementById("earningTable");
+if(!table) return;
+
+table.innerHTML=`
+<tr>
+<th>Month-Year</th>
+<th>Total Apps</th>
+<th>Paid Apps</th>
+<th>Total Earning (₹)</th>
+</tr>`;
+
+let groups={};
+
+apps.forEach(a=>{
+let key=`${a.month}-${a.year}`;
+if(!groups[key]) groups[key]=[];
+groups[key].push(a);
+});
+
+Object.keys(groups).sort().reverse().forEach(key=>{
+
+let data=groups[key];
+let paid=data.filter(a=>a.paid);
+let total=paid.reduce((s,a)=>s+(parseFloat(a.price)||0),0);
+
+table.innerHTML+=`
+<tr>
+<td>${key}</td>
+<td>${data.length}</td>
+<td>${paid.length}</td>
+<td>₹ ${total}</td>
+</tr>`;
+});
+}
+
 render();
+
 </script>
 
 </body>
