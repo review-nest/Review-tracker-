@@ -105,31 +105,22 @@ word-break:break-word;
 <i class="fa-solid fa-layer-group"></i> Review Nest Industrial Dashboard
 </div>
 
-<!-- DASHBOARD -->
 <div class="dashboard">
 <div class="card" onclick="openPage('trackerPage')"><i class="fa-solid fa-plus"></i><p>App Tracker</p></div>
 <div class="card" onclick="openPage('clientPage')"><i class="fa-solid fa-users"></i><p>Client File</p></div>
 <div class="card" onclick="openPage('universalPage')"><i class="fa-solid fa-table"></i><p>Universal File</p></div>
 <div class="card" onclick="openPage('clientTrackerPage')"><i class="fa-solid fa-folder-open"></i><p>Client Tracker</p></div>
-
-<!-- NEW -->
-<div class="card" onclick="openPage('earningPage')">
-<i class="fa-solid fa-sack-dollar"></i>
-<p>Monthly Earnings</p>
-</div>
 </div>
 
 <!-- ADD APP -->
 <div class="page" id="trackerPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Add App</h2>
-
 <input type="text" id="appName" placeholder="App Name">
 <select id="clientSelect"></select>
 <input type="date" id="appDate">
 <input type="number" id="appPrice" placeholder="Price">
 <input type="text" id="appHint" placeholder="Hint">
-
 <button onclick="addApp()">Add</button>
 </div>
 
@@ -137,10 +128,8 @@ word-break:break-word;
 <div class="page" id="clientPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Client File</h2>
-
 <input type="text" id="clientName" placeholder="Client Name">
 <button onclick="addClient()">Add Client</button>
-
 <div id="clientList"></div>
 </div>
 
@@ -148,7 +137,6 @@ word-break:break-word;
 <div class="page" id="universalPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Universal Excel Sheet</h2>
-
 <div class="tableWrapper">
 <table id="universalTable"></table>
 </div>
@@ -158,19 +146,8 @@ word-break:break-word;
 <div class="page" id="clientTrackerPage">
 <button class="backBtn" onclick="goHome()">Back</button>
 <h2>Client Excel Sheet</h2>
-
 <div id="clientFolders"></div>
 <div id="clientApps"></div>
-</div>
-
-<!-- EARNING DASHBOARD -->
-<div class="page" id="earningPage">
-<button class="backBtn" onclick="goHome()">Back</button>
-<h2>Monthly Earnings Dashboard</h2>
-
-<div class="tableWrapper">
-<table id="earningTable"></table>
-</div>
 </div>
 
 <script>
@@ -242,30 +219,76 @@ paid:false
 save();render();
 }
 
-/* TOGGLES */
+/* ✅ FIXED TOGGLE */
 function togglePublish(i){
 apps[i].publish=!apps[i].publish;
-save();render();
+save();
+
+let a=apps[i];
+let key=`${a.month}-${a.year}`;
+refreshGroup(key);
 }
 
-function togglePaid(i){
-apps[i].paid=!apps[i].paid;
-save();render();
+/* DELETE */
+function deleteApp(index,client){
+if(confirm("Delete this app?")){
+let a=apps[index];
+let key=`${a.month}-${a.year}`;
+apps.splice(index,1);
+save();
+refreshGroup(key);
+openClient(client);
+}
 }
 
-/* COPY FIX */
+/* REFRESH GROUP ONLY */
+function refreshGroup(key){
+let el=document.getElementById("uni_"+key);
+if(!el) return;
+
+let data=apps.filter(a=>`${a.month}-${a.year}`===key);
+
+let html=`
+<tr>
+<th>App</th><th>Date</th><th>Client</th>
+<th>Hint</th><th>Publish</th><th>Action</th>
+</tr>`;
+
+data.forEach(a=>{
+html+=`
+<tr class="${a.publish?'publishRow':'unpublishRow'}">
+<td>${a.app}</td>
+<td>${formatDate(a.date)}</td>
+<td>${a.client}</td>
+<td>${a.hint||"-"}</td>
+<td>
+<button onclick="togglePublish(${apps.indexOf(a)})">
+<i class="fa-solid ${a.publish?'fa-check':'fa-xmark'}"></i>
+</button>
+</td>
+<td>
+<div style="display:flex;gap:4px;justify-content:center">
+<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'><i class="fa fa-copy"></i></button>
+<button class="deleteBtn" onclick="deleteApp(${apps.indexOf(a)},'${a.client}')"><i class="fa fa-trash"></i></button>
+</div>
+</td>
+</tr>`;
+});
+
+el.innerHTML=html;
+}
+
+/* COPY */
 function copyText(a){
-let text=
-`App Name: ${a.app}
+let text=`App Name: ${a.app}
 Date: ${formatDate(a.date)}
 Price: ₹${a.price||0}
 Hint: ${a.hint||"-"}`;
-
 navigator.clipboard.writeText(text);
 alert("Copied!");
 }
 
-/* UNIVERSAL */
+/* RENDER */
 function render(){
 
 let select=document.getElementById("clientSelect");
@@ -277,7 +300,6 @@ clients.forEach(c=>select.innerHTML+=`<option>${c}</option>`);
 let ut=document.getElementById("universalTable");
 if(ut){
 ut.innerHTML="";
-
 let groups={};
 
 apps.forEach(a=>{
@@ -289,8 +311,7 @@ groups[key].push(a);
 Object.keys(groups).sort().reverse().forEach(key=>{
 ut.innerHTML+=`
 <tr>
-<th colspan="6" style="background:#0d47a1;color:white;cursor:pointer"
-onclick="toggleGroup('${key}','uni')">
+<th colspan="6" onclick="toggleGroup('${key}','uni')" style="cursor:pointer;background:#0d47a1;color:white">
 📁 Month: ${key}
 </th>
 </tr>
@@ -318,50 +339,19 @@ let folders=document.getElementById("clientFolders");
 if(folders){
 folders.innerHTML="";
 clients.forEach(c=>{
-folders.innerHTML+=`
-<div class="folder" onclick="openClient('${c}')">${c}</div>`;
+folders.innerHTML+=`<div class="folder" onclick="openClient('${c}')">${c}</div>`;
 });
 }
-
-/* EARNINGS */
-renderEarnings();
 }
 
-/* UNIVERSAL OPEN */
+/* GROUP OPEN */
 function toggleGroup(key,type){
 let el=document.getElementById(type+"_"+key);
-if(el.style.display==="none"){
+if(!el) return;
+
+if(el.style.display==="none"||el.style.display===""){
 el.style.display="table-row-group";
-
-let data=apps.filter(a=>`${a.month}-${a.year}`===key);
-
-let html=`
-<tr>
-<th>App</th><th>Date</th><th>Client</th>
-<th>Hint</th><th>Publish</th><th>Action</th>
-</tr>`;
-
-data.forEach(a=>{
-html+=`
-<tr class="${a.publish?'publishRow':'unpublishRow'}">
-<td>${a.app}</td>
-<td>${formatDate(a.date)}</td>
-<td>${a.client}</td>
-<td>${a.hint||"-"}</td>
-<td>
-<button onclick="togglePublish(${apps.indexOf(a)})">
-<i class="fa-solid ${a.publish?'fa-check':'fa-xmark'}"></i>
-</button>
-</td>
-<td>
-<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'>
-<i class="fa fa-copy"></i>
-</button>
-</td>
-</tr>`;
-});
-
-el.innerHTML=html;
+refreshGroup(key);
 }else{
 el.style.display="none";
 }
@@ -373,29 +363,12 @@ let area=document.getElementById("clientApps");
 
 let filtered=apps.filter(a=>a.client===client);
 
-let groups={};
-filtered.forEach(a=>{
-let key=`${a.month}-${a.year}`;
-if(!groups[key]) groups[key]=[];
-groups[key].push(a);
-});
-
-let html=`<h3>${client}</h3><div class="tableWrapper"><table>`;
-
-Object.keys(groups).sort().reverse().forEach(key=>{
-html+=`
+let html=`<h3>${client}</h3><div class="tableWrapper"><table>
 <tr>
-<th colspan="7" style="background:#1b5e20;color:white">
-📄 Month: ${key}
-</th>
-</tr>
-
-<tr>
-<th>Sr</th><th>App</th><th>Date</th>
-<th>Price</th><th>Hint</th><th>Paid</th><th>Action</th>
+<th>Sr</th><th>App</th><th>Date</th><th>Price</th><th>Hint</th><th>Paid</th><th>Action</th>
 </tr>`;
 
-groups[key].forEach((a,i)=>{
+filtered.forEach((a,i)=>{
 html+=`
 <tr class="${a.paid?'paidRow':'unpaidRow'}">
 <td>${i+1}</td>
@@ -410,54 +383,21 @@ onclick="togglePaid(${apps.indexOf(a)});openClient('${client}')">
 </button>
 </td>
 <td>
-<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'>
-<i class="fa fa-copy"></i>
-</button>
+<div style="display:flex;gap:4px;justify-content:center">
+<button class="copyBtn" onclick='copyText(${JSON.stringify(a)})'><i class="fa fa-copy"></i></button>
+<button class="deleteBtn" onclick="deleteApp(${apps.indexOf(a)},'${client}')"><i class="fa fa-trash"></i></button>
+</div>
 </td>
 </tr>`;
-});
 });
 
 html+="</table></div>";
 area.innerHTML=html;
 }
 
-/* EARNINGS DASHBOARD */
-function renderEarnings(){
-
-let table=document.getElementById("earningTable");
-if(!table) return;
-
-table.innerHTML=`
-<tr>
-<th>Month-Year</th>
-<th>Total Apps</th>
-<th>Paid Apps</th>
-<th>Total Earning (₹)</th>
-</tr>`;
-
-let groups={};
-
-apps.forEach(a=>{
-let key=`${a.month}-${a.year}`;
-if(!groups[key]) groups[key]=[];
-groups[key].push(a);
-});
-
-Object.keys(groups).sort().reverse().forEach(key=>{
-
-let data=groups[key];
-let paid=data.filter(a=>a.paid);
-let total=paid.reduce((s,a)=>s+(parseFloat(a.price)||0),0);
-
-table.innerHTML+=`
-<tr>
-<td>${key}</td>
-<td>${data.length}</td>
-<td>${paid.length}</td>
-<td>₹ ${total}</td>
-</tr>`;
-});
+function togglePaid(i){
+apps[i].paid=!apps[i].paid;
+save();
 }
 
 render();
