@@ -155,6 +155,11 @@ word-break:break-word;
 let clients=JSON.parse(localStorage.getItem("clients"))||[];
 let apps=JSON.parse(localStorage.getItem("apps"))||[];
 
+/* SORT */
+function sortApps(){
+apps.sort((a,b)=> new Date(b.date) - new Date(a.date));
+}
+
 function save(){
 localStorage.setItem("clients",JSON.stringify(clients));
 localStorage.setItem("apps",JSON.stringify(apps));
@@ -216,10 +221,11 @@ publish:false,
 paid:false
 });
 
+sortApps();
 save();render();
 }
 
-/* ✅ FIXED TOGGLE */
+/* FIXED TOGGLE */
 function togglePublish(i){
 apps[i].publish=!apps[i].publish;
 save();
@@ -241,15 +247,14 @@ openClient(client);
 }
 }
 
-/* REFRESH GROUP ONLY */
+/* REFRESH GROUP */
 function refreshGroup(key){
 let el=document.getElementById("uni_"+key);
 if(!el) return;
 
 let data=apps.filter(a=>`${a.month}-${a.year}`===key);
 
-let html=`
-<tr>
+let html=`<tr>
 <th>App</th><th>Date</th><th>Client</th>
 <th>Hint</th><th>Publish</th><th>Action</th>
 </tr>`;
@@ -290,6 +295,8 @@ alert("Copied!");
 
 /* RENDER */
 function render(){
+
+sortApps();
 
 let select=document.getElementById("clientSelect");
 if(select){
@@ -344,7 +351,7 @@ folders.innerHTML+=`<div class="folder" onclick="openClient('${c}')">${c}</div>`
 }
 }
 
-/* GROUP OPEN */
+/* GROUP */
 function toggleGroup(key,type){
 let el=document.getElementById(type+"_"+key);
 if(!el) return;
@@ -361,7 +368,9 @@ el.style.display="none";
 function openClient(client){
 let area=document.getElementById("clientApps");
 
-let filtered=apps.filter(a=>a.client===client);
+let filtered=apps
+.filter(a=>a.client===client)
+.sort((a,b)=> new Date(b.date)-new Date(a.date));
 
 let html=`<h3>${client}</h3><div class="tableWrapper"><table>
 <tr>
